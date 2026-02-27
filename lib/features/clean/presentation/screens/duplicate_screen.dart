@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:phonecleaner/features/clean/presentation/providers/duplicate_provider.dart';
+import 'package:phonecleaner/features/clean/presentation/screens/success_screen.dart';
 
 class DuplicateScreen extends ConsumerWidget {
   const DuplicateScreen({super.key});
@@ -351,9 +352,37 @@ class DuplicateScreen extends ConsumerWidget {
           CupertinoDialogAction(child: const Text('Cancel'), onPressed: () => Navigator.pop(context)),
           CupertinoDialogAction(
             isDestructiveAction: true,
-            onPressed: () {
-              Navigator.pop(context);
-              ref.read(duplicateProvider.notifier).deleteSelected();
+            onPressed: () async {
+              // Calculate potential stats before deletion attempt
+              final state = ref.read(duplicateProvider);
+              int totalSelectedCount = 0;
+              double totalSelectedSize = 0;
+              for (var groupState in state.groups) {
+                if (groupState.selectedIds.isNotEmpty) {
+                  totalSelectedCount += groupState.selectedIds.length;
+                  totalSelectedSize += (groupState.group.totalSize / groupState.group.assets.length) * groupState.selectedIds.length;
+                }
+              }
+              final sizeSavedGB = totalSelectedSize / (1024.0 * 1024.0 * 1024.0);
+
+              final navigator = Navigator.of(context);
+              Navigator.pop(context); // Close custom dialog immediately
+              final deletedIds = await ref.read(duplicateProvider.notifier).deleteSelected();
+              
+              if (deletedIds.isNotEmpty) {
+                final actualSizeGB = sizeSavedGB * (deletedIds.length / totalSelectedCount);
+                
+                navigator.pushAndRemoveUntil(
+                  CupertinoPageRoute(
+                    builder: (_) => SuccessScreen(
+                      deletedCount: deletedIds.length,
+                      sizeSavedGB: actualSizeGB,
+                      category: 'duplicates',
+                    ),
+                  ),
+                  (route) => route.isFirst,
+                );
+              }
             },
             child: const Text('Delete'),
           ),

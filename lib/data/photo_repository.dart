@@ -52,7 +52,7 @@ abstract class PhotoRepository {
   Future<List<AssetEntity>> getOnThisDay();
   Future<List<AssetEntity>> getMonthly(int year, int month);
   Future<List<AssetEntity>> getRandom({int limit = 50});
-  Future<void> deleteAssets(List<AssetEntity> assets);
+  Future<List<String>> deleteAssets(List<AssetEntity> assets);
   Future<Set<DateTime>> getPhotoDays(DateTime month);
   Future<PhotoStats> getPhotoStats();
   Future<List<MonthlyGroup>> getMonthlyGroups();
@@ -126,9 +126,9 @@ class PhotoRepositoryImpl implements PhotoRepository {
   }
 
   @override
-  Future<void> deleteAssets(List<AssetEntity> assets) async {
+  Future<List<String>> deleteAssets(List<AssetEntity> assets) async {
     final List<String> ids = assets.map((e) => e.id).toList();
-    await PhotoManager.editor.deleteWithIds(ids);
+    return await PhotoManager.editor.deleteWithIds(ids);
   }
 
   @override

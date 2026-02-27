@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:phonecleaner/data/photo_repository.dart';
+import 'package:phonecleaner/features/clean/presentation/providers/swipe_monthly_provider.dart';
 import 'package:phonecleaner/features/home/presentation/providers/home_provider.dart';
 import 'package:phonecleaner/features/stats/presentation/providers/stats_provider.dart';
 
@@ -105,31 +106,33 @@ class DuplicateNotifier extends Notifier<DuplicateState> {
     state = state.copyWith(groups: groups);
   }
 
-  Future<void> deleteSelected() async {
+  Future<List<String>> deleteSelected() async {
     state = state.copyWith(isDeleting: true);
     
-    final List<AssetEntity> toDelete = [];
-    int totalCount = 0;
-    int totalSize = 0;
-
+    List<AssetEntity> toDelete = [];
+    double totalSize = 0;
+    
     for (var groupState in state.groups) {
-      for (var asset in groupState.group.assets) {
-        if (groupState.selectedIds.contains(asset.id)) {
-          toDelete.add(asset);
-          totalCount++;
-          totalSize += (groupState.group.totalSize / groupState.group.assets.length).floor();
-        }
+      if (groupState.selectedIds.isNotEmpty) {
+        final assets = groupState.group.assets.where((a) => groupState.selectedIds.contains(a.id)).toList();
+        toDelete.addAll(assets);
+        totalSize += (groupState.group.totalSize / groupState.group.assets.length) * assets.length;
       }
     }
 
+    List<String> deletedIds = [];
     if (toDelete.isNotEmpty) {
-      await _repository.deleteAssets(toDelete);
-      final sizeGB = totalSize / (1024.0 * 1024.0 * 1024.0);
-      await ref.read(statsProvider.notifier).addSession(totalCount, sizeGB);
+      deletedIds = await _repository.deleteAssets(toDelete);
+      if (deletedIds.isNotEmpty) {
+        final actualSizeGB = (totalSize / (1024.0 * 1024.0 * 1024.0)) * (deletedIds.length / toDelete.length);
+        await ref.read(statsProvider.notifier).addSession(deletedIds.length, actualSizeGB);
+      }
     }
 
     await loadDuplicates();
     ref.invalidate(homeStatsProvider);
+    ref.invalidate(monthlyGroupsProvider);
     state = state.copyWith(isDeleting: false);
+    return deletedIds;
   }
 }

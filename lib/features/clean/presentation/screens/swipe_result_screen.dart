@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:phonecleaner/core/theme.dart';
 import 'package:phonecleaner/features/clean/presentation/providers/swipe_provider.dart';
+import 'package:phonecleaner/features/clean/presentation/screens/success_screen.dart';
 
 class SwipeResultScreen extends ConsumerWidget {
   final String category;
@@ -85,6 +86,12 @@ class SwipeResultScreen extends ConsumerWidget {
               right: 0,
               child: _buildBottomBar(context, ref, deletedPhotos.length, totalSizeGB),
             ),
+
+            if (state.isDeleting)
+              Container(
+                color: const Color(0x42000000),
+                child: const Center(child: CupertinoActivityIndicator(color: CupertinoColors.white)),
+              ),
           ],
         ),
       ),
@@ -247,10 +254,22 @@ class SwipeResultScreen extends ConsumerWidget {
       barrierDismissible: true,
       builder: (context) => _DeleteConfirmDialog(
         onConfirm: () async {
-          Navigator.pop(context);
-          await ref.read(swipeProvider(category).notifier).confirmDeletion();
-          if (context.mounted) {
-            Navigator.popUntil(context, (route) => route.isFirst);
+          final navigator = Navigator.of(context);
+          Navigator.pop(context); // Close custom dialog immediately
+          final deletedIds = await ref.read(swipeProvider(category).notifier).confirmDeletion();
+          
+          if (deletedIds.isNotEmpty) {
+            final actualSizeGB = (deletedIds.length * 3.0) / 1024.0;
+            navigator.pushAndRemoveUntil(
+              CupertinoPageRoute(
+                builder: (_) => SuccessScreen(
+                  deletedCount: deletedIds.length,
+                  sizeSavedGB: actualSizeGB,
+                  category: category,
+                ),
+              ),
+              (route) => route.isFirst,
+            );
           }
         },
       ),

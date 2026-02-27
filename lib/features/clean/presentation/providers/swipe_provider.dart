@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:phonecleaner/data/photo_repository.dart';
 import 'package:phonecleaner/features/clean/presentation/providers/gallery_provider.dart';
+import 'package:phonecleaner/features/clean/presentation/providers/swipe_monthly_provider.dart';
 import 'package:phonecleaner/features/home/presentation/providers/home_provider.dart';
 import 'package:phonecleaner/features/stats/presentation/providers/stats_provider.dart';
 import 'package:phonecleaner/features/supercut/presentation/providers/supercut_provider.dart';
@@ -18,6 +19,7 @@ class SwipeState {
   final List<AssetEntity> deletedPhotos;
   final List<SwipeAction> history;
   final bool isLoading;
+  final bool isDeleting;
   final bool isFinished;
 
   const SwipeState({
@@ -26,6 +28,7 @@ class SwipeState {
     required this.deletedPhotos,
     this.history = const [],
     this.isLoading = false,
+    this.isDeleting = false,
     this.isFinished = false,
   });
 
@@ -35,6 +38,7 @@ class SwipeState {
     List<AssetEntity>? deletedPhotos,
     List<SwipeAction>? history,
     bool? isLoading,
+    bool? isDeleting,
     bool? isFinished,
   }) {
     return SwipeState(
@@ -43,6 +47,7 @@ class SwipeState {
       deletedPhotos: deletedPhotos ?? this.deletedPhotos,
       history: history ?? this.history,
       isLoading: isLoading ?? this.isLoading,
+      isDeleting: isDeleting ?? this.isDeleting,
       isFinished: isFinished ?? this.isFinished,
     );
   }
@@ -202,14 +207,24 @@ class SwipeNotifier extends Notifier<SwipeState> {
     }
   }
 
-  Future<void> confirmDeletion() async {
-    final count = state.deletedPhotos.length;
-    final storageGB = (count * 3.0) / 1024.0;
-    
-    await _repository.deleteAssets(state.deletedPhotos);
-    await _statsNotifier.addSession(count, storageGB);
+  Future<List<String>> confirmDeletion() async {
+    state = state.copyWith(isDeleting: true);
+    final deletedIds = await _repository.deleteAssets(state.deletedPhotos);
+    if (deletedIds.isEmpty) {
+      state = state.copyWith(isDeleting: false);
+      return [];
+    }
+
+    final keptCount = state.keptPhotos.length;
+    await _statsNotifier.addSession(
+      deletedIds.length, 
+      (deletedIds.length * 3.0) / 1024.0,
+      keptCount: keptCount,
+    );
     ref.invalidate(homeStatsProvider);
+    ref.invalidate(monthlyGroupsProvider);
     
-    state = state.copyWith(deletedPhotos: [], history: []);
+    state = state.copyWith(deletedPhotos: [], history: [], isDeleting: false);
+    return deletedIds;
   }
 }
