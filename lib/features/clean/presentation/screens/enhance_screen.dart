@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Colors;
 import 'package:photo_manager/photo_manager.dart';
 
 
@@ -70,15 +69,15 @@ class _EnhanceScreenState extends State<EnhanceScreen> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: Colors.black54,
+                                  color: const Color(0x8A000000),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text('ORIGINAL', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                child: const Text('ORIGINAL', style: TextStyle(color: CupertinoColors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                               ),
                             ),
                           const Positioned(
                             bottom: 20,
-                            child: Text('Press and hold to see original', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                            child: Text('Press and hold to see original', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 12)),
                           ),
                         ],
                       ),

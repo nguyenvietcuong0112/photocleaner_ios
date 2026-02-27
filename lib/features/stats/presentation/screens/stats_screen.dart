@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phonecleaner/core/theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:phonecleaner/features/stats/presentation/stats_provider.dart';
+import 'package:phonecleaner/features/stats/presentation/providers/stats_provider.dart';
 
 class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});

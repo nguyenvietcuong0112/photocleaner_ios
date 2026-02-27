@@ -37,7 +37,7 @@ dependencies:
   flutter_riverpod: ^3.2.1
   photo_manager: ^3.8.3
   video_player: ^2.10.1
-  ffmpeg_kit_flutter_full: ^6.0.3
+  ffmpeg_kit_flutter_full: 6.0.3-LTS
   shared_preferences: ^2.5.4
   flutter_animate: ^4.5.2
   intl: ^0.20.2

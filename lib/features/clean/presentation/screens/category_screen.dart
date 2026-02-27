@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:phonecleaner/core/theme.dart';
-import 'package:phonecleaner/features/clean/presentation/swipe_screen.dart';
+import 'package:phonecleaner/features/clean/presentation/screens/swipe_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class CategoryScreen extends StatelessWidget {

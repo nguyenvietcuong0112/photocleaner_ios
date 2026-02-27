@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:phonecleaner/core/theme.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:phonecleaner/features/clean/presentation/swipe_screen.dart';
+import 'package:phonecleaner/features/clean/presentation/screens/swipe_screen.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phonecleaner/data/photo_repository.dart';

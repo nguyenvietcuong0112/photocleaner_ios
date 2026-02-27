@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:phonecleaner/core/theme.dart';
-import 'package:phonecleaner/features/supercut/presentation/supercut_provider.dart';
+import 'package:phonecleaner/features/supercut/presentation/providers/supercut_provider.dart';
 
 class SupercutScreen extends ConsumerStatefulWidget {
   const SupercutScreen({super.key});

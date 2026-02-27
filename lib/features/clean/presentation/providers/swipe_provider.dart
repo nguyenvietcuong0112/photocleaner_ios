@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:phonecleaner/data/photo_repository.dart';
-import 'package:phonecleaner/features/stats/presentation/stats_provider.dart';
-import 'package:phonecleaner/features/supercut/presentation/supercut_provider.dart';
+import 'package:phonecleaner/features/clean/presentation/providers/gallery_provider.dart';
+import 'package:phonecleaner/features/home/presentation/providers/home_provider.dart';
+import 'package:phonecleaner/features/stats/presentation/providers/stats_provider.dart';
+import 'package:phonecleaner/features/supercut/presentation/providers/supercut_provider.dart';
 
 class SwipeAction {
   final AssetEntity asset;
@@ -68,8 +70,18 @@ class SwipeNotifier extends Notifier<SwipeState> {
     state = state.copyWith(isLoading: true);
     
     List<AssetEntity> fetched;
-    if (category.startsWith('On ')) {
-       fetched = await _repository.getRecents(limit: 50); 
+
+    // Handle Monthly_YYYY_MM format
+    if (category.startsWith('Monthly_')) {
+      final parts = category.split('_');
+      if (parts.length == 3) {
+        final year = int.tryParse(parts[1]) ?? DateTime.now().year;
+        final month = int.tryParse(parts[2]) ?? DateTime.now().month;
+        fetched = await _repository.getMonthly(year, month);
+      } else {
+        final now = DateTime.now();
+        fetched = await _repository.getMonthly(now.year, now.month);
+      }
     } else {
       switch (category) {
         case 'Recents':
@@ -77,6 +89,10 @@ class SwipeNotifier extends Notifier<SwipeState> {
           break;
         case 'On This Day':
           fetched = await _repository.getOnThisDay();
+          break;
+        case 'Monthly':
+          final now = DateTime.now();
+          fetched = await _repository.getMonthly(now.year, now.month);
           break;
         case 'Random':
           fetched = await _repository.getRandom();
@@ -86,7 +102,14 @@ class SwipeNotifier extends Notifier<SwipeState> {
       }
     }
     
-    state = state.copyWith(photos: fetched, isLoading: false);
+    // Ensure unique photos by ID to prevent duplication issues
+    final seenIds = <String>{};
+    final uniqueFetched = fetched.where((p) => seenIds.add(p.id)).toList();
+    
+    state = state.copyWith(
+      photos: uniqueFetched, 
+      isLoading: false
+    );
   }
 
   void keepPhoto(AssetEntity asset) {
@@ -106,6 +129,32 @@ class SwipeNotifier extends Notifier<SwipeState> {
       history: [...state.history, SwipeAction(asset, false)],
       isFinished: state.photos.length <= 1,
     );
+  }
+
+  Future<void> toggleFavorite(AssetEntity asset) async {
+    await _repository.toggleFavorite(asset);
+    
+    final ids = ref.read(favoriteIdsProvider);
+    final newIds = Set<String>.from(ids);
+    if (newIds.contains(asset.id)) {
+      newIds.remove(asset.id);
+    } else {
+      newIds.add(asset.id);
+    }
+    ref.read(favoriteIdsProvider.notifier).updateIds(newIds);
+  }
+
+  void toggleHidden(AssetEntity asset) {
+    _repository.toggleHidden(asset);
+    
+    final ids = ref.read(hiddenIdsProvider);
+    final newIds = Set<String>.from(ids);
+    if (newIds.contains(asset.id)) {
+      newIds.remove(asset.id);
+    } else {
+      newIds.add(asset.id);
+    }
+    ref.read(hiddenIdsProvider.notifier).updateIds(newIds);
   }
 
   void undo() {
@@ -132,12 +181,34 @@ class SwipeNotifier extends Notifier<SwipeState> {
     }
   }
 
+  void toggleDeletion(AssetEntity asset) {
+    // Search by ID to ensure we handle potential duplicates gracefully
+    final isMarkedForDeletion = state.deletedPhotos.any((p) => p.id == asset.id);
+    
+    if (isMarkedForDeletion) {
+      // Move from deleted to kept
+      state = state.copyWith(
+        deletedPhotos: state.deletedPhotos.where((p) => p.id != asset.id).toList(),
+        keptPhotos: [...state.keptPhotos.where((p) => p.id != asset.id), asset],
+      );
+      _supercutNotifier.toggleSelection(asset);
+    } else {
+      // Move from kept to deleted
+      state = state.copyWith(
+        keptPhotos: state.keptPhotos.where((p) => p.id != asset.id).toList(),
+        deletedPhotos: [...state.deletedPhotos.where((p) => p.id != asset.id), asset],
+      );
+      _supercutNotifier.toggleSelection(asset);
+    }
+  }
+
   Future<void> confirmDeletion() async {
     final count = state.deletedPhotos.length;
     final storageGB = (count * 3.0) / 1024.0;
     
     await _repository.deleteAssets(state.deletedPhotos);
     await _statsNotifier.addSession(count, storageGB);
+    ref.invalidate(homeStatsProvider);
     
     state = state.copyWith(deletedPhotos: [], history: []);
   }
