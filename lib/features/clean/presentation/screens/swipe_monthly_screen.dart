@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:phonecleaner/core/theme.dart';
 import 'package:phonecleaner/data/photo_repository.dart';
@@ -23,17 +24,13 @@ class SwipeMonthlyScreen extends ConsumerWidget {
       navigationBar: CupertinoNavigationBar(
         backgroundColor: CupertinoColors.white.withValues(alpha: 0.95),
         border: null,
-        middle: const Text(
+        middle: Text(
           'Swipe',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 20.sp,
             fontWeight: FontWeight.bold,
             color: Color(0xFF1A202C),
           ),
-        ),
-        trailing: GestureDetector(
-          onTap: () {},
-          child: const Icon(CupertinoIcons.square_stack_3d_up, color: AppColors.accent, size: 24),
         ),
       ),
       child: SafeArea(
@@ -44,13 +41,15 @@ class SwipeMonthlyScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(CupertinoIcons.exclamationmark_triangle, size: 48, color: CupertinoColors.systemGrey.withValues(alpha: 0.6)),
-                const SizedBox(height: 12),
-                const Text(
+                Icon(CupertinoIcons.exclamationmark_triangle,
+                    size: 48.sp,
+                    color: CupertinoColors.systemGrey.withValues(alpha: 0.6)),
+                SizedBox(height: 12.h),
+                Text(
                   'Failed to load photos',
                   style: TextStyle(
                     color: CupertinoColors.systemGrey,
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     decoration: TextDecoration.none,
                   ),
                 ),
@@ -68,12 +67,14 @@ class SwipeMonthlyScreen extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(CupertinoIcons.photo_on_rectangle, size: 64, color: CupertinoColors.systemGrey.withValues(alpha: 0.6)),
-            const SizedBox(height: 16),
+            Icon(CupertinoIcons.photo_on_rectangle,
+                size: 64.sp,
+                color: CupertinoColors.systemGrey.withValues(alpha: 0.6)),
+            SizedBox(height: 16.h),
             Text(
               'No photos found',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 20.sp,
                 fontWeight: FontWeight.w600,
                 color: CupertinoColors.systemGrey.withValues(alpha: 0.8),
                 decoration: TextDecoration.none,
@@ -118,7 +119,7 @@ class SwipeMonthlyScreen extends ConsumerWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.only(left: 12, right: 16, top: 8, bottom: 20),
+      padding: EdgeInsets.only(left: 12.w, right: 16.w, top: 8.h, bottom: 20.h),
       itemCount: allItems.length,
       itemBuilder: (context, index) {
         final item = allItems[index];
@@ -137,21 +138,20 @@ class SwipeMonthlyScreen extends ConsumerWidget {
     final category = 'Monthly_${data.group.year}_${data.group.month.toString().padLeft(2, '0')}';
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 12.h),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Month label on the left
           SizedBox(
-            width: 65,
+            width: 65.w,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   data.label,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: 13.sp,
                     fontWeight: FontWeight.w900,
                     color: AppColors.accent,
                     letterSpacing: 0.5,
@@ -161,8 +161,8 @@ class SwipeMonthlyScreen extends ConsumerWidget {
                 if (data.sublabel.isNotEmpty)
                   Text(
                     data.sublabel,
-                    style: const TextStyle(
-                      fontSize: 15,
+                    style: TextStyle(
+                      fontSize: 15.sp,
                       fontWeight: FontWeight.w800,
                       color: Color(0xFF4A5568),
                       decoration: TextDecoration.none,
@@ -171,7 +171,7 @@ class SwipeMonthlyScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 6.w),
           // Thumbnail card
           Expanded(
             child: GestureDetector(
@@ -184,14 +184,14 @@ class SwipeMonthlyScreen extends ConsumerWidget {
                 );
               },
               child: Container(
-                height: 170,
+                height: 170.h,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(18.r),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFF000000).withValues(alpha: 0.08),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                      blurRadius: 12.r,
+                      offset: Offset(0, 4.h),
                     ),
                   ],
                 ),
@@ -206,7 +206,7 @@ class SwipeMonthlyScreen extends ConsumerWidget {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      height: 60,
+                      height: 60.h,
                       child: Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -222,37 +222,38 @@ class SwipeMonthlyScreen extends ConsumerWidget {
                     ),
                     // Item count badge
                     Positioned(
-                      bottom: 14,
-                      left: 16,
+                      bottom: 14.h,
+                      left: 16.w,
                       child: Row(
                         children: [
                           Container(
-                            width: 26,
-                            height: 26,
+                            width: 26.w,
+                            height: 26.w,
                             decoration: BoxDecoration(
                               color: _getBadgeColor(data.group.month),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: _getBadgeColor(data.group.month).withValues(alpha: 0.4),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
+                                  color: _getBadgeColor(data.group.month)
+                                      .withValues(alpha: 0.4),
+                                  blurRadius: 6.r,
+                                  offset: Offset(0, 2.h),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8.w),
                           Text(
                             '${data.group.count} items',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: CupertinoColors.white,
-                              fontSize: 15,
+                              fontSize: 15.sp,
                               fontWeight: FontWeight.w600,
                               decoration: TextDecoration.none,
                               shadows: [
                                 Shadow(
                                   color: Color(0x80000000),
-                                  blurRadius: 4,
+                                  blurRadius: 4.r,
                                 ),
                               ],
                             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:phonecleaner/features/clean/presentation/providers/duplicate_provider.dart';
 import 'package:phonecleaner/features/clean/presentation/screens/success_screen.dart';
@@ -32,17 +33,17 @@ class DuplicateScreen extends ConsumerWidget {
       navigationBar: CupertinoNavigationBar(
         backgroundColor: CupertinoColors.white.withValues(alpha: 0.9),
         border: null,
-        middle: const Text(
+        middle: Text(
           'Duplicate',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 20.sp,
             fontWeight: FontWeight.w600,
             color: Color(0xFF2D3748),
           ),
         ),
         leading: GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: const Icon(CupertinoIcons.back, color: Color(0xFF2D3748)),
+          child: Icon(CupertinoIcons.back, size: 24.sp, color: Color(0xFF2D3748)),
         ),
       ),
       child: SafeArea(
@@ -54,7 +55,7 @@ class DuplicateScreen extends ConsumerWidget {
               _buildEmptyState()
             else
               ListView.builder(
-                padding: const EdgeInsets.only(bottom: 120, top: 10),
+                padding: EdgeInsets.only(bottom: 120.h, top: 10.h),
                 itemCount: state.groups.length,
                 itemBuilder: (context, index) {
                   final groupState = state.groups[index];
@@ -85,11 +86,16 @@ class DuplicateScreen extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(CupertinoIcons.doc_on_doc, size: 60, color: CupertinoColors.systemGrey.withValues(alpha: 0.4)),
-          const SizedBox(height: 16),
-          const Text(
+          Icon(CupertinoIcons.doc_on_doc,
+              size: 60.sp,
+              color: CupertinoColors.systemGrey.withValues(alpha: 0.4)),
+          SizedBox(height: 16.h),
+          Text(
             'No duplicates found',
-            style: TextStyle(fontSize: 18, color: CupertinoColors.systemGrey, fontWeight: FontWeight.w600),
+            style: TextStyle(
+                fontSize: 18.sp,
+                color: CupertinoColors.systemGrey,
+                fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -101,7 +107,7 @@ class DuplicateScreen extends ConsumerWidget {
     final isAnySelected = groupState.selectedIds.isNotEmpty;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+      padding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 24.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -110,8 +116,8 @@ class DuplicateScreen extends ConsumerWidget {
             children: [
               Text(
                 '${assets.length} Photo',
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF3182CE),
                 ),
@@ -126,8 +132,8 @@ class DuplicateScreen extends ConsumerWidget {
                 },
                 child: Text(
                   isAnySelected ? 'Deselect all' : 'Select all',
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: 15.sp,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF4299E1),
                   ),
@@ -135,7 +141,7 @@ class DuplicateScreen extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12.h),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -144,10 +150,11 @@ class DuplicateScreen extends ConsumerWidget {
                 flex: 1,
                 child: AspectRatio(
                   aspectRatio: 1,
-                  child: _buildLargeThumbnail(assets[0], groupState.selectedIds.contains(assets[0].id)),
+                  child: _buildLargeThumbnail(assets[0],
+                      groupState.selectedIds.contains(assets[0].id)),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               // Right: 2x2 grid
               Expanded(
                 flex: 1,
@@ -155,10 +162,10 @@ class DuplicateScreen extends ConsumerWidget {
                   aspectRatio: 1,
                   child: GridView.builder(
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8.w,
+                      mainAxisSpacing: 8.w,
                     ),
                     itemCount: (assets.length - 1).clamp(0, 4),
                     itemBuilder: (context, i) {
@@ -179,7 +186,7 @@ class DuplicateScreen extends ConsumerWidget {
   Widget _buildLargeThumbnail(AssetEntity asset, bool isSelected) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         color: const Color(0xFFEDF2F7),
       ),
       clipBehavior: Clip.antiAlias,
@@ -189,19 +196,19 @@ class DuplicateScreen extends ConsumerWidget {
           _Thumbnail(asset: asset),
           // "Best" badge
           Positioned(
-            top: 12,
-            left: 12,
+            top: 12.h,
+            left: 12.w,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
               decoration: BoxDecoration(
                 color: CupertinoColors.black.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(4.r),
               ),
-              child: const Text(
+              child: Text(
                 'Best',
                 style: TextStyle(
                   color: CupertinoColors.white,
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -209,19 +216,22 @@ class DuplicateScreen extends ConsumerWidget {
           ),
           // Selection indicator (circle)
           Positioned(
-            bottom: 12,
-            right: 12,
+            bottom: 12.h,
+            right: 12.w,
             child: Container(
-              width: 24,
-              height: 24,
+              width: 24.w,
+              height: 24.w,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: CupertinoColors.white, width: 2),
-                color: isSelected ? const Color(0xFF4299E1) : CupertinoColors.black.withValues(alpha: 0.2),
+                border: Border.all(color: CupertinoColors.white, width: 2.w),
+                color: isSelected
+                    ? const Color(0xFF4299E1)
+                    : CupertinoColors.black.withValues(alpha: 0.2),
               ),
-              child: isSelected 
-                ? const Icon(CupertinoIcons.checkmark_alt, size: 16, color: CupertinoColors.white)
-                : null,
+              child: isSelected
+                  ? Icon(CupertinoIcons.checkmark_alt,
+                      size: 16.sp, color: CupertinoColors.white)
+                  : null,
             ),
           ),
         ],
@@ -234,7 +244,7 @@ class DuplicateScreen extends ConsumerWidget {
       onTap: () => ref.read(duplicateProvider.notifier).toggleSelection(groupIndex, asset.id),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
           color: const Color(0xFFEDF2F7),
         ),
         clipBehavior: Clip.antiAlias,
@@ -244,19 +254,26 @@ class DuplicateScreen extends ConsumerWidget {
             _Thumbnail(asset: asset),
             // Selection indicator
             Positioned(
-              bottom: 6,
-              right: 6,
+              bottom: 6.h,
+              right: 6.w,
               child: Container(
-                width: 20,
-                height: 20,
+                width: 20.w,
+                height: 20.w,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected ? const Color(0xFF4299E1) : CupertinoColors.black.withValues(alpha: 0.2),
-                  border: isSelected ? null : Border.all(color: CupertinoColors.white.withValues(alpha: 0.8), width: 1.5),
+                  color: isSelected
+                      ? const Color(0xFF4299E1)
+                      : CupertinoColors.black.withValues(alpha: 0.2),
+                  border: isSelected
+                      ? null
+                      : Border.all(
+                          color: CupertinoColors.white.withValues(alpha: 0.8),
+                          width: 1.5.w),
                 ),
-                child: isSelected 
-                  ? const Icon(CupertinoIcons.checkmark_alt, size: 14, color: CupertinoColors.white)
-                  : null,
+                child: isSelected
+                    ? Icon(CupertinoIcons.checkmark_alt,
+                        size: 14.sp, color: CupertinoColors.white)
+                    : null,
               ),
             ),
           ],
@@ -267,14 +284,14 @@ class DuplicateScreen extends ConsumerWidget {
 
   Widget _buildBottomBar(BuildContext context, WidgetRef ref, int count, int size, bool isDeleting) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 32.h),
       decoration: BoxDecoration(
         color: CupertinoColors.white,
         boxShadow: [
           BoxShadow(
             color: CupertinoColors.black.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, -5),
+            blurRadius: 15.r,
+            offset: Offset(0, -5.h),
           ),
         ],
       ),
@@ -287,17 +304,17 @@ class DuplicateScreen extends ConsumerWidget {
               children: [
                 Text(
                   '$count photos',
-                  style: const TextStyle(
-                    fontSize: 18,
+                  style: TextStyle(
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF2D3748),
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4.h),
                 Text(
                   _formatSize(size),
-                  style: const TextStyle(
-                    fontSize: 22,
+                  style: TextStyle(
+                    fontSize: 22.sp,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF38B2AC), // Teal color from design
                   ),
@@ -308,9 +325,9 @@ class DuplicateScreen extends ConsumerWidget {
           GestureDetector(
             onTap: count > 0 && !isDeleting ? () => _confirmDelete(context, ref) : null,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: 36.w, vertical: 16.h),
               decoration: BoxDecoration(
-                gradient: count > 0 
+                gradient: count > 0
                     ? const LinearGradient(
                         colors: [Color(0xFF4299E1), Color(0xFF667EEA)],
                         begin: Alignment.topLeft,
@@ -318,20 +335,22 @@ class DuplicateScreen extends ConsumerWidget {
                       )
                     : null,
                 color: count > 0 ? null : CupertinoColors.systemGrey4,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: count > 0 ? [
-                  BoxShadow(
-                    color: const Color(0xFF4299E1).withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ] : null,
+                borderRadius: BorderRadius.circular(16.r),
+                boxShadow: count > 0
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF4299E1).withValues(alpha: 0.3),
+                          blurRadius: 12.r,
+                          offset: Offset(0, 6.h),
+                        ),
+                      ]
+                    : null,
               ),
-              child: const Text(
+              child: Text(
                 'Delete photos',
                 style: TextStyle(
-                  color: CupertinoColors.white, 
-                  fontSize: 18, 
+                  color: CupertinoColors.white,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.w700,
                 ),
               ),

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
-
 
 class EnhanceScreen extends StatefulWidget {
   final AssetEntity asset;
@@ -24,7 +24,8 @@ class _EnhanceScreenState extends State<EnhanceScreen> {
   }
 
   Future<void> _loadImage() async {
-    final data = await widget.asset.thumbnailDataWithSize(const ThumbnailSize(1200, 1800));
+    final data = await widget.asset
+        .thumbnailDataWithSize(const ThumbnailSize(1200, 1800));
     if (mounted) {
       setState(() => _imageData = data);
     }
@@ -38,13 +39,19 @@ class _EnhanceScreenState extends State<EnhanceScreen> {
         backgroundColor: CupertinoColors.black.withValues(alpha: 0.5),
         leading: CupertinoButton(
           padding: EdgeInsets.zero,
-          child: const Text('Cancel', style: TextStyle(color: CupertinoColors.white)),
+          child: Text('Cancel',
+              style: TextStyle(color: CupertinoColors.white, fontSize: 16.sp)),
           onPressed: () => Navigator.pop(context),
         ),
-        middle: const Text('Enhance', style: TextStyle(color: CupertinoColors.white)),
+        middle: Text('Enhance',
+            style: TextStyle(color: CupertinoColors.white, fontSize: 18.sp)),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
-          child: const Text('Done', style: TextStyle(color: CupertinoColors.activeBlue, fontWeight: FontWeight.bold)),
+          child: Text('Done',
+              style: TextStyle(
+                  color: CupertinoColors.activeBlue,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.sp)),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -61,23 +68,30 @@ class _EnhanceScreenState extends State<EnhanceScreen> {
                         alignment: Alignment.center,
                         children: [
                           _buildFilteredImage(_brightness, _contrast),
-                          if (_showOriginal)
-                            _buildFilteredImage(0.0, 1.0),
+                          if (_showOriginal) _buildFilteredImage(0.0, 1.0),
                           if (_showOriginal)
                             Positioned(
-                              top: 20,
+                              top: 20.h,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12.w, vertical: 6.h),
                                 decoration: BoxDecoration(
                                   color: const Color(0x8A000000),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(8.r),
                                 ),
-                                child: const Text('ORIGINAL', style: TextStyle(color: CupertinoColors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                child: Text('ORIGINAL',
+                                    style: TextStyle(
+                                        color: CupertinoColors.white,
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.bold)),
                               ),
                             ),
-                          const Positioned(
-                            bottom: 20,
-                            child: Text('Press and hold to see original', style: TextStyle(color: Color(0xB3FFFFFF), fontSize: 12)),
+                          Positioned(
+                            bottom: 20.h,
+                            child: Text('Press and hold to see original',
+                                style: TextStyle(
+                                    color: const Color(0xB3FFFFFF),
+                                    fontSize: 12.sp)),
                           ),
                         ],
                       ),
@@ -104,10 +118,10 @@ class _EnhanceScreenState extends State<EnhanceScreen> {
 
   Widget _buildControls() {
     return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1C1C1E),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      padding: EdgeInsets.all(32.w),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1C1E),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -120,7 +134,7 @@ class _EnhanceScreenState extends State<EnhanceScreen> {
             max: 0.5,
             onChanged: (val) => setState(() => _brightness = val),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24.h),
           _SliderRow(
             icon: CupertinoIcons.circle_lefthalf_fill,
             label: 'Contrast',
@@ -159,11 +173,15 @@ class _SliderRow extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(icon, color: CupertinoColors.systemGrey, size: 20),
-            const SizedBox(width: 8),
-            Text(label, style: const TextStyle(color: CupertinoColors.white, fontSize: 14)),
+            Icon(icon, color: CupertinoColors.systemGrey, size: 20.sp),
+            SizedBox(width: 8.w),
+            Text(label,
+                style:
+                    TextStyle(color: CupertinoColors.white, fontSize: 14.sp)),
             const Spacer(),
-            Text(value.toStringAsFixed(2), style: const TextStyle(color: CupertinoColors.systemGrey, fontSize: 14)),
+            Text(value.toStringAsFixed(2),
+                style: TextStyle(
+                    color: CupertinoColors.systemGrey, fontSize: 14.sp)),
           ],
         ),
         CupertinoSlider(
@@ -176,3 +194,4 @@ class _SliderRow extends StatelessWidget {
     );
   }
 }
+

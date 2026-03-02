@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:phonecleaner/core/theme.dart';
 import 'package:phonecleaner/features/clean/presentation/providers/swipe_provider.dart';
@@ -45,8 +46,8 @@ class SwipeResultScreen extends ConsumerWidget {
         border: null,
         middle: Text(
           category.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 14,
+          style: TextStyle(
+            fontSize: 14.sp,
             fontWeight: FontWeight.w800,
             color: Color(0xFF718096),
             letterSpacing: 1.2,
@@ -54,7 +55,8 @@ class SwipeResultScreen extends ConsumerWidget {
         ),
         leading: GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: const Icon(CupertinoIcons.back, color: Color(0xFF2D3748)),
+          child: Icon(CupertinoIcons.back,
+              size: 24.sp, color: Color(0xFF2D3748)),
         ),
       ),
       child: SafeArea(
@@ -62,13 +64,13 @@ class SwipeResultScreen extends ConsumerWidget {
           children: [
             // Grid view
             Padding(
-              padding: const EdgeInsets.only(bottom: 100), // Height of bottom bar
+              padding: EdgeInsets.only(bottom: 100.h), // Height of bottom bar
               child: GridView.builder(
-                padding: const EdgeInsets.all(2),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                padding: EdgeInsets.all(2.w),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
-                  crossAxisSpacing: 2,
-                  mainAxisSpacing: 2,
+                  crossAxisSpacing: 2.w,
+                  mainAxisSpacing: 2.w,
                 ),
                 itemCount: allPhotos.length,
                 itemBuilder: (context, index) {
@@ -106,12 +108,12 @@ class SwipeResultScreen extends ConsumerWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        margin: EdgeInsets.all(isDeleted ? 4 : 2),
+        margin: EdgeInsets.all(isDeleted ? 4.w : 2.w),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: isDeleted 
-              ? Border.all(color: const Color(0xFFF06292), width: 3)
-              : Border.all(color: CupertinoColors.transparent, width: 3),
+          borderRadius: BorderRadius.circular(12.r),
+          border: isDeleted
+              ? Border.all(color: const Color(0xFFF06292), width: 3.w)
+              : Border.all(color: CupertinoColors.transparent, width: 3.w),
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -126,12 +128,14 @@ class SwipeResultScreen extends ConsumerWidget {
               duration: const Duration(milliseconds: 200),
               child: Container(
                 color: const Color(0xFFF06292).withValues(alpha: 0.25),
-                child: const Center(
+                child: Center(
                   child: Icon(
                     CupertinoIcons.trash_fill,
                     color: CupertinoColors.white,
-                    size: 32,
-                    shadows: [Shadow(color: Color(0x42000000), blurRadius: 8)],
+                    size: 32.sp,
+                    shadows: [
+                      Shadow(color: Color(0x42000000), blurRadius: 8.r)
+                    ],
                   ),
                 ),
               ),
@@ -139,29 +143,31 @@ class SwipeResultScreen extends ConsumerWidget {
             
             // Badge indicator
             Positioned(
-              top: 8,
-              right: 8,
+              top: 8.h,
+              right: 8.w,
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
                 child: isDeleted
                     ? Container(
                         key: const ValueKey('delete_badge'),
-                        padding: const EdgeInsets.all(4),
+                        padding: EdgeInsets.all(4.w),
                         decoration: const BoxDecoration(
                           color: Color(0xFFF06292),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(CupertinoIcons.trash_fill, size: 14, color: CupertinoColors.white),
+                        child: Icon(CupertinoIcons.trash_fill,
+                            size: 14.sp, color: CupertinoColors.white),
                       )
                     : Container(
                         key: const ValueKey('keep_badge'),
-                        padding: const EdgeInsets.all(4),
+                        padding: EdgeInsets.all(4.w),
                         decoration: const BoxDecoration(
                           color: AppColors.accent,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(CupertinoIcons.checkmark_alt, size: 14, color: CupertinoColors.white),
+                        child: Icon(CupertinoIcons.checkmark_alt,
+                            size: 14.sp, color: CupertinoColors.white),
                       ),
               ),
             ),
@@ -173,15 +179,15 @@ class SwipeResultScreen extends ConsumerWidget {
 
   Widget _buildBottomBar(BuildContext context, WidgetRef ref, int count, double sizeGB) {
     return Container(
-      height: 100,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      height: 100.h,
+      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
       decoration: BoxDecoration(
         color: CupertinoColors.white,
         boxShadow: [
           BoxShadow(
             color: CupertinoColors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+            blurRadius: 10.r,
+            offset: Offset(0, -5.h),
           ),
         ],
       ),
@@ -195,8 +201,8 @@ class SwipeResultScreen extends ConsumerWidget {
               children: [
                 Text(
                   '$count selected',
-                  style: const TextStyle(
-                    fontSize: 18,
+                  style: TextStyle(
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF2D3748),
                     decoration: TextDecoration.none,
@@ -204,8 +210,8 @@ class SwipeResultScreen extends ConsumerWidget {
                 ),
                 Text(
                   _formatStorage(sizeGB),
-                  style: const TextStyle(
-                    fontSize: 22,
+                  style: TextStyle(
+                    fontSize: 22.sp,
                     fontWeight: FontWeight.w800,
                     color: AppColors.accent,
                     decoration: TextDecoration.none,
@@ -219,24 +225,26 @@ class SwipeResultScreen extends ConsumerWidget {
           GestureDetector(
             onTap: count > 0 ? () => _showDeleteConfirmation(context, ref) : null,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+              padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 14.h),
               decoration: BoxDecoration(
                 gradient: count > 0 ? AppColors.swipeButtonGradient : null,
                 color: count > 0 ? null : CupertinoColors.systemGrey4,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: count > 0 ? [
-                  BoxShadow(
-                    color: const Color(0xFF42A5F5).withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ] : null,
+                borderRadius: BorderRadius.circular(14.r),
+                boxShadow: count > 0
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF42A5F5).withValues(alpha: 0.3),
+                          blurRadius: 8.r,
+                          offset: Offset(0, 4.h),
+                        ),
+                      ]
+                    : null,
               ),
-              child: const Text(
+              child: Text(
                 'Delete photos',
                 style: TextStyle(
                   color: CupertinoColors.white,
-                  fontSize: 17,
+                  fontSize: 17.sp,
                   fontWeight: FontWeight.bold,
                   decoration: TextDecoration.none,
                 ),
@@ -286,53 +294,53 @@ class _DeleteConfirmDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 32),
-        padding: const EdgeInsets.all(24),
+        margin: EdgeInsets.symmetric(horizontal: 32.w),
+        padding: EdgeInsets.all(24.w),
         decoration: BoxDecoration(
           color: CupertinoColors.white,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(28.r),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'Delete',
               style: TextStyle(
-                fontSize: 22,
+                fontSize: 22.sp,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFFF06292),
                 decoration: TextDecoration.none,
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: 16.h),
+            Text(
               'The file(s) will be moved to Trash and automatically deleted after 30 days.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 16.sp,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF4A5568),
                 decoration: TextDecoration.none,
                 height: 1.4,
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32.h),
             Row(
               children: [
                 Expanded(
                   child: GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF7F7F7),
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(18.r),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'Cancel',
                           style: TextStyle(
-                            fontSize: 17,
+                            fontSize: 17.sp,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF2D3748),
                             decoration: TextDecoration.none,
@@ -342,21 +350,21 @@ class _DeleteConfirmDialog extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 Expanded(
                   child: GestureDetector(
                     onTap: onConfirm,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF06292),
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(18.r),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'Delete',
                           style: TextStyle(
-                            fontSize: 17,
+                            fontSize: 17.sp,
                             fontWeight: FontWeight.bold,
                             color: CupertinoColors.white,
                             decoration: TextDecoration.none,

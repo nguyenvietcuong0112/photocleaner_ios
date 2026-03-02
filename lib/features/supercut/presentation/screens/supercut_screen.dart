@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:phonecleaner/core/theme.dart';
 import 'package:phonecleaner/features/supercut/presentation/providers/supercut_provider.dart';
@@ -32,53 +33,53 @@ class _SupercutScreenState extends ConsumerState<SupercutScreen> {
               border: null,
             ),
           SliverPadding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20.w),
             sliver: SliverToBoxAdapter(
               child: Column(
                 children: [
                   Container(
-                    width: 120,
-                    height: 120,
+                    width: 120.w,
+                    height: 120.w,
                     decoration: BoxDecoration(
                       color: CupertinoColors.white,
-                      borderRadius: BorderRadius.circular(60),
+                      borderRadius: BorderRadius.circular(60.r),
                       boxShadow: [
                         BoxShadow(
                           color: CupertinoColors.activeBlue.withValues(alpha: 0.1),
-                          blurRadius: 20,
+                          blurRadius: 20.r,
                         ),
                       ],
                     ),
-                    child: const Icon(CupertinoIcons.play_rectangle_fill, size: 50, color: CupertinoColors.activeBlue),
+                    child: Icon(CupertinoIcons.play_rectangle_fill, size: 50.sp, color: CupertinoColors.activeBlue),
                   ),
-                  const SizedBox(height: 20),
-                  const Text('Select Kept Photos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text('${selectedPhotos.length} photos selected', style: const TextStyle(color: CupertinoColors.systemGrey)),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 20.h),
+                  Text('Select Kept Photos', style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8.h),
+                  Text('${selectedPhotos.length} photos selected', style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 14.sp)),
+                  SizedBox(height: 24.h),
                   _buildMusicSelector(),
                 ],
               ),
             ),
           ),
           if (selectedPhotos.isEmpty)
-            const SliverFillRemaining(
+            SliverFillRemaining(
               hasScrollBody: false,
               child: Center(
                 child: Text('Photos you "KEEP" during cleaning\nwill appear here for selection.', 
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: CupertinoColors.systemGrey),
+                  style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 16.sp),
                 ),
               ),
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
               sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10.h,
+                  crossAxisSpacing: 10.w,
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -91,17 +92,17 @@ class _SupercutScreenState extends ConsumerState<SupercutScreen> {
             ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(40),
+              padding: EdgeInsets.all(40.w),
               child: _isExporting
-                  ? const Column(
+                  ? Column(
                       children: [
-                        CupertinoActivityIndicator(radius: 15),
-                        SizedBox(height: 10),
-                        Text('Generating Supercut...', style: TextStyle(fontSize: 14)),
+                        const CupertinoActivityIndicator(radius: 15),
+                        SizedBox(height: 10.h),
+                        Text('Generating Supercut...', style: TextStyle(fontSize: 14.sp)),
                       ],
                     )
                   : CupertinoButton.filled(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(16.r),
                       onPressed: selectedPhotos.isEmpty ? null : _startExport,
                       child: const Text('Export Supercut HD'),
                     ),
@@ -128,24 +129,24 @@ class _SupercutScreenState extends ConsumerState<SupercutScreen> {
 
   Widget _buildMusicSelector() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: CupertinoColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: Row(
         children: [
-          const Icon(CupertinoIcons.music_note_2, color: CupertinoColors.activeBlue, size: 20),
-          const SizedBox(width: 12),
-          const Text('Background Music', style: TextStyle(fontWeight: FontWeight.w600)),
+          Icon(CupertinoIcons.music_note_2, color: CupertinoColors.activeBlue, size: 20.sp),
+          SizedBox(width: 12.w),
+          Text('Background Music', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16.sp)),
           const Spacer(),
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: _showMusicPicker,
             child: Row(
               children: [
-                Text(_selectedMusic, style: const TextStyle(color: CupertinoColors.systemGrey, fontSize: 14)),
-                const Icon(CupertinoIcons.chevron_up_chevron_down, size: 14, color: CupertinoColors.systemGrey),
+                Text(_selectedMusic, style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 14.sp)),
+                Icon(CupertinoIcons.chevron_up_chevron_down, size: 14.sp, color: CupertinoColors.systemGrey),
               ],
             ),
           ),
@@ -158,7 +159,7 @@ class _SupercutScreenState extends ConsumerState<SupercutScreen> {
     showCupertinoModalPopup(
       context: context,
       builder: (context) => Container(
-        height: 250,
+        height: 250.h,
         color: CupertinoColors.white,
         child: Column(
           children: [
@@ -176,7 +177,7 @@ class _SupercutScreenState extends ConsumerState<SupercutScreen> {
             ),
             Expanded(
               child: CupertinoPicker(
-                itemExtent: 40,
+                itemExtent: 40.h,
                 onSelectedItemChanged: (index) {
                   final tracks = ['Chill Melodies', 'Upbeat Summer', 'Lo-Fi Beats', 'Acoustic Morning'];
                   setState(() => _selectedMusic = tracks[index]);
@@ -223,7 +224,7 @@ class _PhotoThumbnail extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8.r),
         color: CupertinoColors.systemGrey6,
       ),
       clipBehavior: Clip.antiAlias,

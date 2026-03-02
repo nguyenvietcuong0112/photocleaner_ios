@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phonecleaner/features/stats/presentation/providers/stats_provider.dart';
 
 class SuccessScreen extends ConsumerWidget {
@@ -16,9 +17,16 @@ class SuccessScreen extends ConsumerWidget {
 
   String _formatSize(double gb) {
     if (gb < 0.1) {
-      return '${(gb * 1024).toStringAsFixed(1)} MB';
+      // Format with common/dot as in image (e.g. 857,5 MB)
+      final mb = gb * 1024;
+      return mb.toStringAsFixed(1).replaceAll('.', ',');
     }
-    return '${gb.toStringAsFixed(2)} GB';
+    return gb.toStringAsFixed(2).replaceAll('.', ',');
+  }
+
+  String _formatNumber(int number) {
+    // Add space or comma for thousands if needed, but the image shows simple numbers
+    return number.toString();
   }
 
   @override
@@ -26,86 +34,85 @@ class SuccessScreen extends ConsumerWidget {
     final allTimeStats = ref.watch(statsProvider);
 
     return CupertinoPageScaffold(
-      backgroundColor: const Color(0xFFF7BD96), // Peach/Orange background from design
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            const Spacer(flex: 1),
-            // Header "success."
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'success.',
+      backgroundColor: CupertinoColors.white,
+      child: Column(
+        children: [
+          Expanded(
+            flex: 4,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(height: 40.h),
+                // Success Icon Area
+                _buildSuccessIcon(),
+                SizedBox(height: 16.h),
+                Text(
+                  'SUCCESS',
                   style: TextStyle(
-                    fontSize: 72,
+                    fontSize: 32.sp,
                     fontWeight: FontWeight.w900,
-                    color: CupertinoColors.white,
-                    letterSpacing: -2,
-                    height: 1,
+                    color: Color(0xFF1A202C),
+                    letterSpacing: 1.2,
                   ),
                 ),
+              ],
+            ),
+          ),
+          
+          // Recents Section
+          _buildStatSection(
+            title: 'Recents',
+            count: deletedCount,
+            size: _formatSize(sizeSavedGB),
+            unit: sizeSavedGB < 0.1 ? 'MB' : 'GB',
+            backgroundColor: const Color(0xFFF7FAFC),
+          ),
+          
+          // All Time Section
+          _buildStatSection(
+            title: 'All time',
+            count: allTimeStats.totalDeleted,
+            size: _formatSize(allTimeStats.totalStorageSavedGB),
+            unit: allTimeStats.totalStorageSavedGB < 0.1 ? 'MB' : 'GB',
+            backgroundColor: const Color(0xFFEBF8FF),
+          ),
+          
+          // Action Button Section
+          Expanded(
+            flex: 2,
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32.w),
+                child: _buildHomeButton(context),
               ),
             ),
-            const SizedBox(height: 60),
-            
-            // Recent stats section
-            _buildStatSection(
-              title: category != null ? 'from ${category!.toLowerCase()}...' : 'from recents...',
-              count: deletedCount,
-              size: _formatSize(sizeSavedGB),
-              isMain: true,
-            ),
-            
-            const SizedBox(height: 40),
-            
-            // All-time stats section
-            _buildStatSection(
-              title: 'all-time!',
-              count: allTimeStats.totalDeleted,
-              size: _formatSize(allTimeStats.totalStorageSavedGB),
-              isMain: false,
-            ),
-            
-            const Spacer(flex: 3),
-            
-            // Bottom button
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 60),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF53E6A1), // Mint green button from design
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: CupertinoColors.black.withValues(alpha: 0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'Back to Home',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: CupertinoColors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuccessIcon() {
+    return Container(
+      width: 140.w,
+      height: 140.w,
+      decoration: BoxDecoration(
+        color: const Color(0xFF9AE6B4).withValues(alpha: 0.3),
+        shape: BoxShape.circle,
+      ),
+      padding: EdgeInsets.all(12.w),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF68D391),
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: Icon(
+            CupertinoIcons.checkmark_alt,
+            color: CupertinoColors.white,
+            size: 64.sp,
+            weight: 10,
+          ),
         ),
       ),
     );
@@ -115,79 +122,106 @@ class SuccessScreen extends ConsumerWidget {
     required String title,
     required int count,
     required String size,
-    required bool isMain,
+    required String unit,
+    required Color backgroundColor,
   }) {
-    final textColor = isMain ? const Color(0xFF2D3748) : const Color(0xFF4A5568);
-    final bgColor = isMain ? const Color(0xFFFFD8BE) : const Color(0xFFFEEBC8).withValues(alpha: 0.5);
-
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
-      color: bgColor,
+      color: backgroundColor,
+      padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 24.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                '$count images',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: textColor,
-                  decoration: TextDecoration.underline,
-                  decorationThickness: 2,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'deleted',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: textColor.withValues(alpha: 0.8),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                size,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: textColor,
-                  decoration: TextDecoration.underline,
-                  decorationThickness: 2,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'saved',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: textColor.withValues(alpha: 0.8),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
           Text(
             title,
             style: TextStyle(
-              fontSize: 22,
+              fontSize: 16.sp,
               fontWeight: FontWeight.w700,
-              color: textColor.withValues(alpha: 0.7),
+              color: Color(0xFF4A5568),
             ),
           ),
+          SizedBox(height: 12.h),
+          Row(
+            children: [
+              Text(
+                '${_formatNumber(count)} Images',
+                style: TextStyle(
+                  fontSize: 28.sp,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFFF56565), // Bright Red
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Text(
+                'Deleted',
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF2D3748),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 4.h),
+          Row(
+            children: [
+              Text(
+                '$size $unit',
+                style: TextStyle(
+                  fontSize: 28.sp,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF48BB78), // Vibrant Green
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Text(
+                'Saved',
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF2D3748),
+                ),
+              ),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHomeButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      },
+      child: Container(
+        width: double.infinity,
+        height: 60.h,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF63B3ED), Color(0xFF4299E1)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF4299E1).withValues(alpha: 0.4),
+              blurRadius: 15.r,
+              offset: Offset(0, 8.h),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            'Back to home',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w800,
+              color: CupertinoColors.white,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:phonecleaner/data/photo_repository.dart';
 import 'package:phonecleaner/features/clean/presentation/providers/gallery_provider.dart';
@@ -25,7 +26,7 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen> {
         border: null,
         leading: CupertinoButton(
           padding: EdgeInsets.zero,
-          child: const Icon(CupertinoIcons.back, color: Color(0xFF2D3748)),
+          child: Icon(CupertinoIcons.back, size: 24.sp, color: const Color(0xFF2D3748)),
           onPressed: () {
             if (_selectedIndex != null) {
               setState(() => _selectedIndex = null);
@@ -34,44 +35,45 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen> {
             }
           },
         ),
-        middle: const Text(
+        middle: Text(
           'Hidden',
           style: TextStyle(
-            color: Color(0xFF2D3748),
-            fontSize: 20,
+            color: const Color(0xFF2D3748),
+            fontSize: 20.sp,
             fontWeight: FontWeight.w700,
           ),
         ),
-        trailing: _selectedIndex != null 
-          ? Text('${_selectedIndex! + 1}/${state.assets.length}', 
-              style: const TextStyle(color: Color(0xFF718096), fontSize: 16))
-          : null,
+        trailing: _selectedIndex != null
+            ? Text('${_selectedIndex! + 1}/${state.assets.length}',
+                style: TextStyle(color: const Color(0xFF718096), fontSize: 16.sp))
+            : null,
       ),
       child: SafeArea(
-        child: state.isLoading 
-          ? const Center(child: CupertinoActivityIndicator())
-          : state.assets.isEmpty
-            ? _buildEmptyState()
-            : _selectedIndex != null
-              ? _buildDetailView(state.assets)
-              : _buildGridView(state.assets),
+        child: state.isLoading
+            ? const Center(child: CupertinoActivityIndicator())
+            : state.assets.isEmpty
+                ? _buildEmptyState()
+                : _selectedIndex != null
+                    ? _buildDetailView(state.assets)
+                    : _buildGridView(state.assets),
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return const Center(
-      child: Text('No hidden photos yet', style: TextStyle(color: CupertinoColors.systemGrey)),
+    return Center(
+      child: Text('No hidden photos yet',
+          style: TextStyle(color: CupertinoColors.systemGrey, fontSize: 16.sp)),
     );
   }
 
   Widget _buildGridView(List<AssetEntity> assets) {
     return GridView.builder(
-      padding: const EdgeInsets.all(2),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      padding: EdgeInsets.all(2.w),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        crossAxisSpacing: 2,
-        mainAxisSpacing: 2,
+        crossAxisSpacing: 2.w,
+        mainAxisSpacing: 2.w,
       ),
       itemCount: assets.length,
       itemBuilder: (context, index) {
@@ -90,21 +92,21 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen> {
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+            padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 10.w),
             child: _Thumbnail(asset: asset, highRes: true),
           ),
         ),
         // Bottom controls
         Container(
-          padding: const EdgeInsets.only(bottom: 40, top: 20),
+          padding: EdgeInsets.only(bottom: 40.h, top: 20.h),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _ArrowButton(
                 icon: CupertinoIcons.chevron_left,
-                onPressed: _selectedIndex! > 0 
-                  ? () => setState(() => _selectedIndex = _selectedIndex! - 1)
-                  : null,
+                onPressed: _selectedIndex! > 0
+                    ? () => setState(() => _selectedIndex = _selectedIndex! - 1)
+                    : null,
               ),
               _ActionButton(
                 icon: CupertinoIcons.eye_fill,
@@ -122,16 +124,17 @@ class _HiddenScreenState extends ConsumerState<HiddenScreen> {
                   ref.read(hiddenIdsProvider.notifier).updateIds(newIds);
 
                   if (_selectedIndex! >= assets.length - 1) {
-                    setState(() => _selectedIndex = assets.length <= 1 ? null : assets.length - 2);
+                    setState(() => _selectedIndex =
+                        assets.length <= 1 ? null : assets.length - 2);
                   }
                   if (assets.length <= 1) setState(() => _selectedIndex = null);
                 },
               ),
               _ArrowButton(
                 icon: CupertinoIcons.chevron_right,
-                onPressed: _selectedIndex! < assets.length - 1 
-                  ? () => setState(() => _selectedIndex = _selectedIndex! + 1)
-                  : null,
+                onPressed: _selectedIndex! < assets.length - 1
+                    ? () => setState(() => _selectedIndex = _selectedIndex! + 1)
+                    : null,
               ),
             ],
           ),
@@ -149,9 +152,12 @@ class _Thumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: asset.thumbnailDataWithSize(highRes ? const ThumbnailSize(1000, 1500) : const ThumbnailSize(300, 300)),
+      future: asset.thumbnailDataWithSize(highRes
+          ? const ThumbnailSize(1000, 1500)
+          : const ThumbnailSize(300, 300)),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
           return Image.memory(snapshot.data!, fit: BoxFit.cover);
         }
         return Container(color: const Color(0xFFF7FAFC));
@@ -172,12 +178,12 @@ class _ArrowButton extends StatelessWidget {
       padding: EdgeInsets.zero,
       onPressed: onPressed,
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: EdgeInsets.all(8.w),
         decoration: BoxDecoration(
           color: const Color(0xFFFFF7E6),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(8.r),
         ),
-        child: Icon(icon, color: const Color(0xFFFFA000), size: 24),
+        child: Icon(icon, color: const Color(0xFFFFA000), size: 24.sp),
       ),
     );
   }
@@ -188,22 +194,24 @@ class _ActionButton extends StatelessWidget {
   final Color color;
   final VoidCallback onPressed;
 
-  const _ActionButton({required this.icon, required this.color, required this.onPressed});
+  const _ActionButton(
+      {required this.icon, required this.color, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        width: 80,
-        height: 80,
+        width: 80.w,
+        height: 80.w,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: const Color(0xFFFFF3E0), width: 8),
+          border: Border.all(color: const Color(0xFFFFF3E0), width: 8.w),
           color: CupertinoColors.white,
         ),
-        child: Center(child: Icon(icon, color: color, size: 40)),
+        child: Center(child: Icon(icon, color: color, size: 40.sp)),
       ),
     );
   }
 }
+

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phonecleaner/core/theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:phonecleaner/features/clean/presentation/screens/swipe_screen.dart';
@@ -47,15 +48,15 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20.w),
                 child: Container(
                   decoration: BoxDecoration(
                     color: CupertinoColors.white,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(24.r),
                     boxShadow: [
                       BoxShadow(
                         color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
-                        blurRadius: 10,
+                        blurRadius: 10.r,
                       ),
                     ],
                   ),
@@ -69,13 +70,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         _selectedDay = selectedDay;
                         _focusedDay = focusedDay;
                       });
-                      
-                      final date = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+
+                      final date = DateTime(selectedDay.year, selectedDay.month,
+                          selectedDay.day);
                       if (_photoDays.contains(date)) {
                         Navigator.push(
                           context,
                           CupertinoPageRoute(
-                            builder: (context) => SwipeScreen(category: 'On ${selectedDay.day}/${selectedDay.month}'),
+                            builder: (context) => SwipeScreen(
+                                category:
+                                    'On ${selectedDay.day}/${selectedDay.month}'),
                           ),
                         );
                       }
@@ -102,22 +106,26 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         shape: BoxShape.circle,
                       ),
                     ),
-                    headerStyle: const HeaderStyle(
+                    headerStyle: HeaderStyle(
                       formatButtonVisible: false,
                       titleCentered: true,
-                      titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      titleTextStyle: TextStyle(
+                          fontSize: 18.sp, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
               ),
             ),
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 20.h),
                 child: Text(
                   'Select a highlighted date to clean photos taken on that day.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: CupertinoColors.systemGrey),
+                  style: TextStyle(
+                    color: CupertinoColors.systemGrey,
+                    fontSize: 14.sp,
+                  ),
                 ),
               ),
             ),
@@ -127,3 +135,4 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     );
   }
 }
+

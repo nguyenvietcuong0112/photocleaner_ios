@@ -21,8 +21,8 @@ class AppColors {
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: [
-      Color(0xFF42A5F5),
-      Color(0xFF64B5F6),
+      Color(0xFF54C8EC),
+      Color(0xFF5887ED),
     ],
   );
 

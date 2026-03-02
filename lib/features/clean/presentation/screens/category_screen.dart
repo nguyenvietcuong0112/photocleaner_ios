@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phonecleaner/core/theme.dart';
 import 'package:phonecleaner/features/clean/presentation/screens/swipe_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -21,7 +22,7 @@ class CategoryScreen extends StatelessWidget {
               border: null,
             ),
             SliverPadding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20.w),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _CategoryCard(
@@ -31,30 +32,30 @@ class CategoryScreen extends StatelessWidget {
                     color: const Color(0xFF6366F1),
                     onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => const SwipeScreen(category: 'Recents'))),
                   ).animate().fadeIn().slideX(begin: 0.1),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
                   _CategoryCard(
                     title: 'On This Day',
                     subtitle: 'Relive memories from today',
                     icon: CupertinoIcons.calendar_today,
                     color: const Color(0xFFEC4899),
                     onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => const SwipeScreen(category: 'On This Day'))),
-                  ).animate().fadeIn(delay: const Duration(milliseconds: 100)).slideX(begin: 0.1),
-                  const SizedBox(height: 16),
+                  ).animate().fadeIn(delay: 100.ms).slideX(begin: 0.1),
+                  SizedBox(height: 16.h),
                   _CategoryCard(
                     title: 'Monthly History',
                     subtitle: 'Grouped by month and year',
                     icon: CupertinoIcons.folder_fill,
                     color: const Color(0xFF10B981),
                     onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => const SwipeScreen(category: 'Monthly'))),
-                  ).animate().fadeIn(delay: const Duration(milliseconds: 200)).slideX(begin: 0.1),
-                  const SizedBox(height: 16),
+                  ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
+                  SizedBox(height: 16.h),
                   _CategoryCard(
                     title: 'Random Mix',
                     subtitle: 'Feeling lucky? Clean anything',
                     icon: CupertinoIcons.shuffle,
                     color: const Color(0xFFF59E0B),
                     onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (context) => const SwipeScreen(category: 'Random'))),
-                  ).animate().fadeIn(delay: const Duration(milliseconds: 300)).slideX(begin: 0.1),
+                  ).animate().fadeIn(delay: 300.ms).slideX(begin: 0.1),
                 ]),
               ),
             ),
@@ -85,39 +86,39 @@ class _CategoryCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 120,
-        padding: const EdgeInsets.all(20),
+        height: 120.h,
+        padding: EdgeInsets.all(20.w),
         decoration: BoxDecoration(
           color: CupertinoColors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(24.r),
           boxShadow: [
             BoxShadow(
               color: CupertinoColors.systemGrey.withValues(alpha: 0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              blurRadius: 10.r,
+              offset: Offset(0, 4.h),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              width: 60,
-              height: 60,
+              width: 60.w,
+              height: 60.w,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(16.r),
               ),
-              child: Icon(icon, color: color, size: 32),
+              child: Icon(icon, color: color, size: 32.sp),
             ),
-            const SizedBox(width: 20),
+            SizedBox(width: 20.w),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: AppTextStyles.subtitle.copyWith(color: CupertinoColors.black)),
-                  const SizedBox(height: 4),
-                  Text(subtitle, style: AppTextStyles.subtitle.copyWith(fontSize: 14, fontWeight: FontWeight.normal)),
+                  Text(title, style: AppTextStyles.subtitle.copyWith(color: CupertinoColors.black, fontSize: 18.sp)),
+                  SizedBox(height: 4.h),
+                  Text(subtitle, style: AppTextStyles.subtitle.copyWith(fontSize: 14.sp, fontWeight: FontWeight.normal)),
                 ],
               ),
             ),

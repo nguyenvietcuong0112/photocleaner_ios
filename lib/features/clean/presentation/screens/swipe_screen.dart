@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:phonecleaner/features/clean/presentation/providers/swipe_provider.dart';
 import 'package:phonecleaner/features/clean/presentation/providers/gallery_provider.dart';
@@ -76,18 +77,20 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> with TickerProviderSt
         ),
         middle: Text(
           displayTitle.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             color: Color(0xFF2D3748),
-            fontSize: 22,
+            fontSize: 22.sp,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.5,
           ),
         ),
         trailing: Text(
-          state.photos.isNotEmpty ? '${processedCount + 1}/$totalCount' : '$processedCount/$totalCount',
-          style: const TextStyle(
+          state.photos.isNotEmpty
+              ? '${processedCount + 1}/$totalCount'
+              : '$processedCount/$totalCount',
+          style: TextStyle(
             color: Color(0xFF718096),
-            fontSize: 16,
+            fontSize: 16.sp,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -97,26 +100,28 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> with TickerProviderSt
           children: [
             // Undo button floating
             Positioned(
-              top: 10,
-              right: 16,
+              top: 10.h,
+              right: 16.w,
               child: CupertinoButton(
                 padding: EdgeInsets.zero,
                 child: Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
                     color: CupertinoColors.white.withValues(alpha: 0.9),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
                         color: CupertinoColors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        blurRadius: 10.r,
+                        offset: Offset(0, 4.h),
                       )
                     ],
                   ),
-                  child: const Icon(CupertinoIcons.arrow_counterclockwise, color: Color(0xFF2D3748), size: 20),
+                  child: Icon(CupertinoIcons.arrow_counterclockwise,
+                      color: Color(0xFF2D3748), size: 20.sp),
                 ),
-                onPressed: () => ref.read(swipeProvider(widget.category).notifier).undo(),
+                onPressed: () =>
+                    ref.read(swipeProvider(widget.category).notifier).undo(),
               ),
             ),
             
@@ -132,8 +137,10 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> with TickerProviderSt
 
                 return Positioned.fill(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-                    child: isTop ? _buildTopCard(asset) : _buildBackgroundCard(index, state.photos.length),
+                    padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 40.h),
+                    child: isTop
+                        ? _buildTopCard(asset)
+                        : _buildBackgroundCard(index, state.photos.length),
                   ),
                 );
               }),
@@ -150,13 +157,16 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> with TickerProviderSt
         children: [
           Icon(
             CupertinoIcons.photo_on_rectangle,
-            size: 64,
+            size: 64.sp,
             color: CupertinoColors.systemGrey.withValues(alpha: 0.4),
           ),
-          const SizedBox(height: 16),
-          const Text(
+          SizedBox(height: 16.h),
+          Text(
             'Keep it up!',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2D3748)),
+            style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2D3748)),
           ),
         ],
       ),
@@ -203,21 +213,25 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> with TickerProviderSt
     final isHidden = hiddenIds.contains(asset.id);
 
     return Positioned(
-      bottom: 24,
-      right: 24,
+      bottom: 24.h,
+      right: 24.w,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           _FloatingAction(
             icon: isFavorite ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
             color: isFavorite ? const Color(0xFFFF5252) : CupertinoColors.white,
-            onPressed: () => ref.read(swipeProvider(widget.category).notifier).toggleFavorite(asset),
+            onPressed: () => ref
+                .read(swipeProvider(widget.category).notifier)
+                .toggleFavorite(asset),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           _FloatingAction(
             icon: isHidden ? CupertinoIcons.eye_slash_fill : CupertinoIcons.eye_slash,
             color: isHidden ? const Color(0xFFFFA000) : CupertinoColors.white,
-            onPressed: () => ref.read(swipeProvider(widget.category).notifier).toggleHidden(asset),
+            onPressed: () => ref
+                .read(swipeProvider(widget.category).notifier)
+                .toggleHidden(asset),
           ),
         ],
       ),
@@ -227,12 +241,12 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> with TickerProviderSt
   Widget _buildPhotoCard(AssetEntity asset) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(24.r),
         boxShadow: [
           BoxShadow(
             color: CupertinoColors.black.withValues(alpha: 0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            blurRadius: 20.r,
+            offset: Offset(0, 10.h),
           ),
         ],
       ),
@@ -265,17 +279,19 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> with TickerProviderSt
       opacity: opacity,
       child: Center(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
           decoration: BoxDecoration(
-            border: Border.all(color: isKeep ? const Color(0xFF48BB78) : const Color(0xFFF56565), width: 4),
-            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+                color: isKeep ? const Color(0xFF48BB78) : const Color(0xFFF56565),
+                width: 4.w),
+            borderRadius: BorderRadius.circular(12.r),
             color: CupertinoColors.black.withValues(alpha: 0.1),
           ),
           child: Text(
             isKeep ? 'KEEP' : 'DELETE',
             style: TextStyle(
               color: isKeep ? const Color(0xFF48BB78) : const Color(0xFFF56565),
-              fontSize: 48,
+              fontSize: 48.sp,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -291,7 +307,7 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> with TickerProviderSt
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFFEDF2F7),
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(24.r),
         ),
       ),
     );
@@ -327,13 +343,13 @@ class _FloatingAction extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        width: 54,
-        height: 54,
+        width: 54.w,
+        height: 54.w,
         decoration: BoxDecoration(
           color: CupertinoColors.black.withValues(alpha: 0.4),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: color, size: 28),
+        child: Icon(icon, color: color, size: 28.sp),
       ),
     );
   }
