@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:phonecleaner/features/splash/presentation/screens/language_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -28,7 +29,14 @@ class SettingsScreen extends StatelessWidget {
               _SettingsItem(
                 icon: CupertinoIcons.textformat_abc_dottedunderline,
                 label: 'Language',
-                onTap: () {},
+                onTap: () {
+                  Navigator.of(context).push(
+                    CupertinoPageRoute(
+                      builder: (context) =>
+                          const LanguageScreen(isFromSettings: true),
+                    ),
+                  );
+                },
               ),
               SizedBox(height: 12.h),
               _SettingsItem(
@@ -110,4 +118,3 @@ class _SettingsItem extends StatelessWidget {
     );
   }
 }
-
