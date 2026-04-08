@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -19,15 +20,6 @@ class DuplicateScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(duplicateProvider);
     
-    int totalSelectedSize = 0;
-    int totalSelectedCount = 0;
-    for (var groupState in state.groups) {
-      if (groupState.selectedIds.isNotEmpty) {
-        totalSelectedCount += groupState.selectedIds.length;
-        totalSelectedSize += ((groupState.group.totalSize / groupState.group.assets.length) * groupState.selectedIds.length).floor();
-      }
-    }
-
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.white,
       navigationBar: CupertinoNavigationBar(
@@ -47,34 +39,79 @@ class DuplicateScreen extends ConsumerWidget {
         ),
       ),
       child: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            if (state.isLoading)
-              const Center(child: CupertinoActivityIndicator())
-            else if (state.groups.isEmpty)
-              _buildEmptyState()
-            else
-              ListView.builder(
-                padding: EdgeInsets.only(bottom: 120.h, top: 10.h),
-                itemCount: state.groups.length,
-                itemBuilder: (context, index) {
-                  final groupState = state.groups[index];
-                  return _buildDuplicateGroup(context, ref, index, groupState);
-                },
-              ),
-
-            // Bottom bar
-            if (state.groups.isNotEmpty)
-              Positioned(
-                bottom: 0, left: 0, right: 0,
-                child: _buildBottomBar(context, ref, totalSelectedCount, totalSelectedSize, state.isDeleting),
-              ),
-            
-            if (state.isDeleting)
+            if (state.isLoading && state.groups.isNotEmpty)
               Container(
-                color: const Color(0x42000000),
-                child: const Center(child: CupertinoActivityIndicator(color: CupertinoColors.white)),
+                padding: EdgeInsets.symmetric(vertical: 8.h),
+                color: const Color(0xFFEBF8FF),
+                width: double.infinity,
+                child: Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CupertinoActivityIndicator(radius: 8),
+                      SizedBox(width: 8.w),
+                      Text(
+                        'Scanning ${state.scannedCount}/${state.totalToScan} images...',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: const Color(0xFF2B6CB0),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
+            Expanded(
+              child: Stack(
+                children: [
+                  if (state.groups.isEmpty && state.isLoading)
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const CupertinoActivityIndicator(),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'Analyzing ${state.scannedCount}/${state.totalToScan} images...',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: CupertinoColors.systemGrey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (state.groups.isEmpty && !state.isLoading)
+                    _buildEmptyState()
+                  else
+                    ListView.builder(
+                      padding: EdgeInsets.only(bottom: 120.h, top: 10.h),
+                      itemCount: state.groups.length,
+                      itemBuilder: (context, index) {
+                        final groupState = state.groups[index];
+                        return _buildDuplicateGroup(context, ref, index, groupState);
+                      },
+                    ),
+
+                  // Bottom bar
+                  if (state.groups.isNotEmpty)
+                    Positioned(
+                      bottom: 0, left: 0, right: 0,
+                      child: _buildBottomBar(context, ref, state.totalSelectedCount, state.totalSelectedSize, state.isDeleting),
+                    ),
+                  
+                  if (state.isDeleting)
+                    Container(
+                      color: const Color(0x42000000),
+                      child: const Center(child: CupertinoActivityIndicator(color: CupertinoColors.white)),
+                    ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -150,8 +187,11 @@ class DuplicateScreen extends ConsumerWidget {
                 flex: 1,
                 child: AspectRatio(
                   aspectRatio: 1,
-                  child: _buildLargeThumbnail(assets[0],
-                      groupState.selectedIds.contains(assets[0].id)),
+                  child: _buildLargeThumbnail(
+                    assets[0],
+                    groupState.selectedIds.contains(assets[0].id),
+                    groupState.group.previewBytes[assets[0].id],
+                  ),
                 ),
               ),
               SizedBox(width: 8.w),
@@ -171,7 +211,8 @@ class DuplicateScreen extends ConsumerWidget {
                     itemBuilder: (context, i) {
                       final asset = assets[i + 1];
                       final isSelected = groupState.selectedIds.contains(asset.id);
-                      return _buildSmallThumbnail(ref, groupIndex, asset, isSelected);
+                      final preview = groupState.group.previewBytes[asset.id];
+                      return _buildSmallThumbnail(ref, groupIndex, asset, isSelected, preview);
                     },
                   ),
                 ),
@@ -183,7 +224,7 @@ class DuplicateScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLargeThumbnail(AssetEntity asset, bool isSelected) {
+  Widget _buildLargeThumbnail(AssetEntity asset, bool isSelected, Uint8List? preview) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.r),
@@ -193,7 +234,7 @@ class DuplicateScreen extends ConsumerWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          _Thumbnail(asset: asset),
+          _Thumbnail(asset: asset, preview: preview),
           // "Best" badge
           Positioned(
             top: 12.h,
@@ -239,7 +280,7 @@ class DuplicateScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSmallThumbnail(WidgetRef ref, int groupIndex, AssetEntity asset, bool isSelected) {
+  Widget _buildSmallThumbnail(WidgetRef ref, int groupIndex, AssetEntity asset, bool isSelected, Uint8List? preview) {
     return GestureDetector(
       onTap: () => ref.read(duplicateProvider.notifier).toggleSelection(groupIndex, asset.id),
       child: Container(
@@ -251,7 +292,7 @@ class DuplicateScreen extends ConsumerWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            _Thumbnail(asset: asset),
+            _Thumbnail(asset: asset, size: 200, preview: preview),
             // Selection indicator
             Positioned(
               bottom: 6.h,
@@ -372,24 +413,16 @@ class DuplicateScreen extends ConsumerWidget {
           CupertinoDialogAction(
             isDestructiveAction: true,
             onPressed: () async {
-              // Calculate potential stats before deletion attempt
+              // Use state directly for stats
               final state = ref.read(duplicateProvider);
-              int totalSelectedCount = 0;
-              double totalSelectedSize = 0;
-              for (var groupState in state.groups) {
-                if (groupState.selectedIds.isNotEmpty) {
-                  totalSelectedCount += groupState.selectedIds.length;
-                  totalSelectedSize += (groupState.group.totalSize / groupState.group.assets.length) * groupState.selectedIds.length;
-                }
-              }
-              final sizeSavedGB = totalSelectedSize / (1024.0 * 1024.0 * 1024.0);
+              final sizeSavedGB = state.totalSelectedSize / (1024.0 * 1024.0 * 1024.0);
 
               final navigator = Navigator.of(context);
               Navigator.pop(context); // Close custom dialog immediately
               final deletedIds = await ref.read(duplicateProvider.notifier).deleteSelected();
               
               if (deletedIds.isNotEmpty) {
-                final actualSizeGB = sizeSavedGB * (deletedIds.length / totalSelectedCount);
+                final actualSizeGB = sizeSavedGB * (deletedIds.length / state.totalSelectedCount);
                 
                 navigator.pushAndRemoveUntil(
                   CupertinoPageRoute(
@@ -413,12 +446,23 @@ class DuplicateScreen extends ConsumerWidget {
 
 class _Thumbnail extends StatelessWidget {
   final AssetEntity asset;
-  const _Thumbnail({required this.asset});
+  final int size;
+  final Uint8List? preview;
+  
+  const _Thumbnail({
+    required this.asset, 
+    this.size = 300,
+    this.preview,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (preview != null) {
+      return Image.memory(preview!, fit: BoxFit.cover);
+    }
+
     return FutureBuilder(
-      future: asset.thumbnailDataWithSize(const ThumbnailSize(300, 300)),
+      future: asset.thumbnailDataWithSize(ThumbnailSize(size, size)),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
           return Image.memory(snapshot.data!, fit: BoxFit.cover);

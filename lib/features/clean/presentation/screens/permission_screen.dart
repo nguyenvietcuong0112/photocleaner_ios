@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,8 +23,9 @@ class _PermissionScreenState extends ConsumerState<PermissionScreen> {
 
     if (granted) {
       if (mounted) {
-        Navigator.of(context).pushReplacement(
+        Navigator.of(context).pushAndRemoveUntil(
           CupertinoPageRoute(builder: (context) => widget.onGranted),
+          (route) => false,
         );
       }
     } else {

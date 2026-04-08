@@ -1,6 +1,13 @@
 import 'package:photo_manager/photo_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
+import 'package:image_hashing/image_hashing.dart';
+import 'dart:typed_data';
+import 'dart:io';
+import 'dart:convert';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 class MonthlyGroup {
   final int year;
@@ -38,12 +45,16 @@ class PhotoStats {
 
 class DuplicateGroup {
   final List<AssetEntity> assets;
+  final List<int> sizes;
   final int totalSize;
+  final Map<String, Uint8List> previewBytes;
 
   DuplicateGroup({
     required this.assets,
+    required this.sizes,
     required this.totalSize,
-  });
+    Map<String, Uint8List>? previewBytes,
+  }) : previewBytes = previewBytes ?? {};
 }
 
 abstract class PhotoRepository {
@@ -56,7 +67,8 @@ abstract class PhotoRepository {
   Future<Set<DateTime>> getPhotoDays(DateTime month);
   Future<PhotoStats> getPhotoStats();
   Future<List<MonthlyGroup>> getMonthlyGroups();
-  Future<List<DuplicateGroup>> getDuplicateGroups();
+  Stream<List<DuplicateGroup>> getDuplicateGroupsStream();
+  Future<List<DuplicateGroup>> getDuplicateGroups(); // For backward compatibility if needed
   
   // New features
   Future<void> toggleFavorite(AssetEntity asset);
@@ -75,6 +87,31 @@ class PhotoRepositoryImpl implements PhotoRepository {
       requestOption: const PermissionRequestOption(),
     );
     return ps.isAuth;
+  }
+
+  // Cache management
+  Map<String, dynamic> _hashCache = {};
+  bool _cacheLoaded = false;
+
+  Future<void> _loadCache() async {
+    if (_cacheLoaded) return;
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File(p.join(dir.path, 'photo_hash_cache.json'));
+      if (await file.exists()) {
+        final content = await file.readAsString();
+        _hashCache = json.decode(content);
+      }
+    } catch (_) {}
+    _cacheLoaded = true;
+  }
+
+  Future<void> _saveCache() async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File(p.join(dir.path, 'photo_hash_cache.json'));
+      await file.writeAsString(json.encode(_hashCache));
+    } catch (_) {}
   }
 
   @override
@@ -195,17 +232,7 @@ class PhotoRepositoryImpl implements PhotoRepository {
         selfies = (totalPhotos * 0.1).round();
       }
 
-      double usedGB = 0;
-      try {
-        usedGB = await _calculateSafeStorage(
-          imagePaths.isNotEmpty ? imagePaths.first : null,
-          totalPhotos,
-          videoPaths.isNotEmpty ? videoPaths.first : null,
-          totalVideos,
-        );
-      } catch (_) {
-        usedGB = (totalPhotos * 3.0 + totalVideos * 50.0) / 1024.0;
-      }
+      double usedGB = _calculateEstimatedStorage(totalPhotos, totalVideos);
 
       final other = totalPhotos - screenshots - selfies;
 
@@ -246,61 +273,12 @@ class PhotoRepositoryImpl implements PhotoRepository {
     }
   }
 
-  Future<double> _calculateSafeStorage(
-    AssetPathEntity? imagePath,
-    int imageCount,
-    AssetPathEntity? videoPath,
-    int videoCount,
-  ) async {
-    double totalBytes = 0;
-
-    if (imagePath != null && imageCount > 0) {
-      final sampleCount = imageCount > 10 ? 10 : imageCount;
-      final assets = await imagePath.getAssetListRange(start: 0, end: sampleCount);
-      double totalSampleSize = 0;
-      int successCount = 0;
-      
-      for (final asset in assets) {
-        try {
-          final file = await asset.file.timeout(const Duration(milliseconds: 500));
-          if (file != null) {
-            totalSampleSize += await file.length();
-            successCount++;
-          }
-        } catch (_) {}
-      }
-      
-      if (successCount > 0) {
-        totalBytes += (totalSampleSize / successCount) * imageCount;
-      } else {
-        totalBytes += imageCount * 3.0 * 1024 * 1024;
-      }
-    }
-
-    if (videoPath != null && videoCount > 0) {
-      final sampleCount = videoCount > 3 ? 3 : videoCount;
-      final assets = await videoPath.getAssetListRange(start: 0, end: sampleCount);
-      double totalSampleSize = 0;
-      int successCount = 0;
-      
-      for (final asset in assets) {
-        try {
-          final file = await asset.file.timeout(const Duration(milliseconds: 1000));
-          if (file != null) {
-            totalSampleSize += await file.length();
-            successCount++;
-          }
-        } catch (_) {}
-      }
-      
-      if (successCount > 0) {
-        totalBytes += (totalSampleSize / successCount) * videoCount;
-      } else {
-        totalBytes += videoCount * 50.0 * 1024 * 1024;
-      }
-    }
-
-    return totalBytes / (1024 * 1024 * 1024);
+  double _calculateEstimatedStorage(int imageCount, int videoCount) {
+    // High-performance estimation:
+    // Avg Photo: 3.5 MB
+    // Avg Video: 45.0 MB
+    final double totalMB = (imageCount * 3.5) + (videoCount * 45.0);
+    return totalMB / 1024.0;
   }
 
   @override
@@ -339,44 +317,229 @@ class PhotoRepositoryImpl implements PhotoRepository {
 
   @override
   Future<List<DuplicateGroup>> getDuplicateGroups() async {
+    // Collect all results from the stream for backward compatibility
+    final List<DuplicateGroup> all = [];
+    await for (final groups in getDuplicateGroupsStream()) {
+      all.addAll(groups);
+    }
+    return all;
+  }
+
+  @override
+  Stream<List<DuplicateGroup>> getDuplicateGroupsStream() async* {
+    await _loadCache();
+    
     final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
       type: RequestType.image,
       onlyAll: true,
     );
-    if (paths.isEmpty) return [];
+    if (paths.isEmpty) return;
 
     final totalCount = await paths.first.assetCountAsync;
-    final assets = await paths.first.getAssetListRange(start: 0, end: totalCount > 2000 ? 2000 : totalCount);
-
-    final Map<String, List<AssetEntity>> potentialDuplicates = {};
+    // Increased limit to 5000 photos for progressive scanning
+    final maxPhotos = totalCount > 5000 ? 5000 : totalCount;
     
-    for (final asset in assets) {
-      try {
-        final file = await asset.file.timeout(const Duration(milliseconds: 500));
-        if (file == null) continue;
-        
-        final size = await file.length();
-        final key = '${size}_${asset.width}_${asset.height}';
-        
-        potentialDuplicates.putIfAbsent(key, () => []).add(asset);
-      } catch (_) {}
-    }
+    // Process in chunks of 200 to give immediate feedback
+    const int chunkSize = 200;
+    
+    for (int start = 0; start < maxPhotos; start += chunkSize) {
+      final end = (start + chunkSize < maxPhotos) ? start + chunkSize : maxPhotos;
+      final assets = await paths.first.getAssetListRange(start: start, end: end);
 
-    final List<Future<DuplicateGroup>> duplicateGroupsFutures = potentialDuplicates.values
-        .where((group) => group.length > 1)
-        .map((group) async {
-          int totalSize = 0;
-          for (final asset in group) {
-            try {
-              final file = await asset.file.timeout(const Duration(milliseconds: 500));
-              if (file != null) totalSize += await file.length();
-            } catch (_) {}
+      // Phase 1: FAST filtering by dimensions
+      final Map<String, List<AssetEntity>> dimensionGroups = {};
+      for (final asset in assets) {
+        final key = '${asset.width}x${asset.height}';
+        dimensionGroups.putIfAbsent(key, () => []).add(asset);
+      }
+
+      final List<AssetEntity> dimensionCandidates = [];
+      for (final group in dimensionGroups.values) {
+        if (group.length > 1) {
+          dimensionCandidates.addAll(group);
+        }
+      }
+
+      if (dimensionCandidates.isEmpty) {
+        yield [];
+        continue;
+      }
+
+      // Phase 2: Metadata Blitz - Group by Dimensions + Modified Timestamp
+      // (High-confidence fast match to avoid Native File calls)
+      final Map<String, List<AssetEntity>> metadataMatchGroups = {};
+      for (final asset in dimensionCandidates) {
+        final key = '${asset.width}x${asset.height}_${asset.modifiedDateTime.millisecondsSinceEpoch}';
+        metadataMatchGroups.putIfAbsent(key, () => []).add(asset);
+      }
+
+      final List<AssetEntity> potentialCandidates = [];
+      for (final group in metadataMatchGroups.values) {
+        if (group.length > 1) {
+          potentialCandidates.addAll(group);
+        }
+      }
+
+      // If no metadata match, we still check those with same dimensions but different dates
+      // to be thorough, but we treat metadata matches as priority.
+      if (potentialCandidates.isEmpty) {
+        potentialCandidates.addAll(dimensionCandidates);
+      }
+
+      // Phase 3: Refined filtering by File Size (Pro optimization)
+      final Map<String, List<AssetEntity>> sizeGroups = {};
+      final Map<String, int> assetSizes = {};
+
+      // STRICT SEQUENTIAL PROCESSING (No Future.wait) to eliminate lag
+      for (final asset in potentialCandidates) {
+        try {
+          final file = await asset.file.timeout(const Duration(milliseconds: 1000));
+          if (file != null) {
+            final size = await file.length();
+            assetSizes[asset.id] = size;
+            final key = '${asset.width}x${asset.height}_$size';
+            sizeGroups.putIfAbsent(key, () => []).add(asset);
           }
-          return DuplicateGroup(assets: group, totalSize: totalSize);
-        })
-        .toList();
+        } catch (_) {}
+        // Small delay to let UI breathe between each request
+        await Future.delayed(const Duration(milliseconds: 5));
+      }
 
-    return Future.wait(duplicateGroupsFutures);
+      final List<AssetEntity> finalCandidates = [];
+      for (final group in sizeGroups.values) {
+        if (group.length > 1) {
+          finalCandidates.addAll(group);
+        }
+      }
+
+      if (finalCandidates.isEmpty) {
+        yield [];
+        continue;
+      }
+
+      // Phase 4: Perceptual Hashing with Caching & Byte-Reuse
+      final Map<String, Uint8List> idToBytesToHash = {};
+      final Map<String, String> idToHash = {};
+      final Map<String, Uint8List> chunkPreviews = {};
+
+      // STRICT SEQUENTIAL PROCESSING for thumbnails
+      for (final asset in finalCandidates) {
+        final cachedData = _hashCache[asset.id];
+        final currentMod = asset.modifiedDateTime.millisecondsSinceEpoch;
+        
+        if (cachedData != null && cachedData['mod'] == currentMod) {
+          idToHash[asset.id] = cachedData['hash'];
+          try {
+            final thumbData = await asset.thumbnailDataWithSize(const ThumbnailSize(64, 64));
+            if (thumbData != null) chunkPreviews[asset.id] = thumbData;
+          } catch (_) {}
+        } else {
+          try {
+            final thumbData = await asset.thumbnailDataWithSize(const ThumbnailSize(64, 64));
+            if (thumbData != null) {
+              idToBytesToHash[asset.id] = thumbData;
+              chunkPreviews[asset.id] = thumbData;
+            }
+          } catch (_) {}
+        }
+        await Future.delayed(const Duration(milliseconds: 10));
+      }
+
+      // Hash missing ones in isolate
+      if (idToBytesToHash.isNotEmpty) {
+        final tempDir = await getTemporaryDirectory();
+        final Map<String, String> newHashes = await compute(
+          _processBytesInIsolate, 
+          {
+            'data': idToBytesToHash,
+            'tempPath': tempDir.path,
+          },
+        );
+
+        newHashes.forEach((id, hash) {
+          idToHash[id] = hash;
+          final asset = finalCandidates.firstWhere((a) => a.id == id);
+          _hashCache[id] = {
+            'hash': hash,
+            'mod': asset.modifiedDateTime.millisecondsSinceEpoch,
+          };
+        });
+        await _saveCache();
+      }
+
+      // Group by hash results for THIS chunk
+      final Map<String, List<AssetEntity>> hashGroupsMap = {};
+      for (final asset in finalCandidates) {
+        final hash = idToHash[asset.id];
+        if (hash != null) {
+          hashGroupsMap.putIfAbsent(hash, () => []).add(asset);
+        }
+      }
+
+      final List<DuplicateGroup> chunkResult = [];
+      for (final group in hashGroupsMap.values) {
+        if (group.length > 1) {
+          final List<int> sizes = group.map((a) => assetSizes[a.id] ?? 0).toList();
+          final int totalSize = sizes.fold(0, (sum, s) => sum + s);
+          
+          // Filter previews to only include assets in this group
+          final Map<String, Uint8List> groupPreviews = {};
+          for (final asset in group) {
+            if (chunkPreviews.containsKey(asset.id)) {
+              groupPreviews[asset.id] = chunkPreviews[asset.id]!;
+            }
+          }
+
+          chunkResult.add(DuplicateGroup(
+            assets: group,
+            sizes: sizes,
+            totalSize: totalSize,
+            previewBytes: groupPreviews,
+          ));
+        }
+      }
+
+      yield chunkResult;
+    }
+  }
+
+  // Optimized static helper for isolate - Handles Byte-to-File-to-Hash internally
+  static Map<String, String> _processBytesInIsolate(Map<String, dynamic> params) {
+    final Map<String, Uint8List> data = params['data'];
+    final String baseTempPath = params['tempPath'];
+    
+    final Map<String, String> results = {};
+    final hasher = AHash();
+    
+    // Create a sub-directory for this specific isolate run
+    final isolateDir = Directory(p.join(baseTempPath, 'isolate_hash_${DateTime.now().microsecondsSinceEpoch}'));
+    isolateDir.createSync(recursive: true);
+
+    try {
+      for (final entry in data.entries) {
+        try {
+          final assetId = entry.key;
+          final bytes = entry.value;
+          
+          // Write to a temporary file so we can use hasher.encodeImage
+          final tempFile = File(p.join(isolateDir.path, '$assetId.jpg'));
+          tempFile.writeAsBytesSync(bytes);
+          
+          final hash = hasher.encodeImage(tempFile.path);
+          results[assetId] = hash!;
+        } catch (_) {
+          // Skip corrupt image data
+        }
+      }
+    } finally {
+      // Clean up isolate-specific temp files immediately
+      if (isolateDir.existsSync()) {
+        try {
+          isolateDir.deleteSync(recursive: true);
+        } catch (_) {}
+      }
+    }
+    return results;
   }
 
   final Set<String> _hiddenIds = {};

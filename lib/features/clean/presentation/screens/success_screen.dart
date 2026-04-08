@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:phonecleaner/features/stats/presentation/providers/stats_provider.dart';
 
+import '../../../home/presentation/screens/home_screen.dart';
+
 class SuccessScreen extends ConsumerWidget {
   final int deletedCount;
   final double sizeSavedGB;
@@ -192,7 +194,10 @@ class SuccessScreen extends ConsumerWidget {
   Widget _buildHomeButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        Navigator.of(context).pushAndRemoveUntil(
+          CupertinoPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false,
+        );
       },
       child: Container(
         width: double.infinity,
